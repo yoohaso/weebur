@@ -2,6 +2,7 @@ import { List } from '@/components/List';
 import { ListItem } from '@/components/ListItem';
 import { Grid } from '@/components/Grid';
 import { GridItem } from '@/components/GridItem';
+import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 
 const PRODUCTS = [
   {
@@ -61,11 +62,15 @@ const PRODUCTS = [
 ];
 
 export default function Home() {
-  const viewType = 'LIST';
+  const [viewMode] = useRandomViewMode();
+
+  if (!viewMode) {
+    return null;
+  }
 
   return (
     <>
-      {viewType === 'LIST' ? (
+      {viewMode === 'LIST' ? (
         <List>
           {PRODUCTS.map(product => (
             <ListItem

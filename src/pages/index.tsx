@@ -3,7 +3,7 @@ import { ListItem } from '@/components/ListItem';
 import { Grid } from '@/components/Grid';
 import { GridItem } from '@/components/GridItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
-import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
+import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
 
 interface Product {
   id: number;
@@ -27,8 +27,8 @@ interface ProductsResponse {
   limit: number;
 }
 
-const fetchProducts = async (): Promise<ProductsResponse> => {
-  const response = await fetch('https://dummyjson.com/products?limit=20');
+const fetchProducts = async ({ skip = 0 }: { skip?: number }): Promise<ProductsResponse> => {
+  const response = await fetch(`https://dummyjson.com/products?limit=20&skip=${skip}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch products');
@@ -40,9 +40,10 @@ const fetchProducts = async (): Promise<ProductsResponse> => {
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchQuery({
+  await queryClient.prefetchInfiniteQuery({
     queryKey: ['products'],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts({ skip: 0 }),
+    initialPageParam: 0,
   });
 
   return {
@@ -52,11 +53,27 @@ export const getServerSideProps = async () => {
   };
 };
 
+const LIMIT = 20;
+
 export default function Home() {
-  const { data: products, isPending } = useQuery({
+  const {
+    data: products,
+    isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    initialPageParam: 0,
     queryKey: ['products'],
-    queryFn: fetchProducts,
-    select: data => data.products,
+    queryFn: ({ pageParam }) => fetchProducts({ skip: pageParam }),
+    getNextPageParam: lastPage => {
+      if (lastPage.limit < LIMIT) {
+        return;
+      }
+
+      return lastPage.skip + LIMIT;
+    },
+    select: data => data.pages.flatMap(page => page.products),
   });
 
   const [viewMode] = useRandomViewMode();
@@ -108,6 +125,11 @@ export default function Home() {
             />
           ))}
         </Grid>
+      )}
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          Load more
+        </button>
       )}
     </>
   );

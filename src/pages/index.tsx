@@ -3,76 +3,77 @@ import { ListItem } from '@/components/ListItem';
 import { Grid } from '@/components/Grid';
 import { GridItem } from '@/components/GridItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
+import { dehydrate, QueryClient, useQuery } from '@tanstack/react-query';
 
-const PRODUCTS = [
-  {
-    id: 1,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-  {
-    id: 2,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-  {
-    id: 3,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-  {
-    id: 4,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-  {
-    id: 5,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-  {
-    id: 6,
-    title: 'Essence Mascara Lash Princess',
-    description:
-      'The Essence Mascara Lash Princess is a popular mascara known for its volumizing and lengthening effects. Achieve dramatic lashes with this long-lasting and cruelty-free formula.',
-    thumbnail: 'https://cdn.dummyjson.com/products/images/beauty/Essence%20Mascara%20Lash%20Princess/thumbnail.png',
-    rating: 4.5,
-    reviews: 100,
-  },
-];
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  thumbnail: string;
+  rating: number;
+  reviews: {
+    comment: string;
+    date: string;
+    rating: number;
+    reviewerEmail: string;
+    reviewerName: string;
+  }[];
+}
+
+interface ProductsResponse {
+  products: Product[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
+const fetchProducts = async (): Promise<ProductsResponse> => {
+  const response = await fetch('https://dummyjson.com/products?limit=20');
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch products');
+  }
+
+  return await response.json();
+};
+
+export const getServerSideProps = async () => {
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
+
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    },
+  };
+};
 
 export default function Home() {
+  const { data: products, isPending } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    select: data => data.products,
+  });
+
   const [viewMode] = useRandomViewMode();
 
   if (!viewMode) {
     return null;
   }
 
+  if (isPending || !products) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       {viewMode === 'LIST' ? (
         <List>
-          {PRODUCTS.map(product => (
+          {products.map(product => (
             <ListItem
               key={product.id}
               left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
@@ -81,7 +82,7 @@ export default function Home() {
                   <h4>{product.title}</h4>
                   <p>{product.description}</p>
                   <p>
-                    별점 {product.rating} 후기 ({product.reviews})
+                    별점 {product.rating} 후기 ({product.reviews.length})
                   </p>
                 </ListItem.Contents>
               }
@@ -90,7 +91,7 @@ export default function Home() {
         </List>
       ) : (
         <Grid>
-          {PRODUCTS.map(product => (
+          {products.map(product => (
             <GridItem
               key={product.id}
               columnCount={4}
@@ -100,7 +101,7 @@ export default function Home() {
                   <h4>{product.title}</h4>
                   <p>{product.description}</p>
                   <p>
-                    별점 {product.rating} 후기 ({product.reviews})
+                    별점 {product.rating} 후기 ({product.reviews.length})
                   </p>
                 </GridItem.Contents>
               }

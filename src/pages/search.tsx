@@ -11,7 +11,9 @@ import { GetServerSidePropsContext } from 'next';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 const fetchProductsBySearch = async ({ search, skip = 0 }: { search: string; skip: number }) => {
-  const response = await fetch(`https://dummyjson.com/products/search?q=${search}&limit=20&skip=${skip}`);
+  const response = await fetch(
+    `https://dummyjson.com/products/search?q=${search}&limit=20&skip=${skip}&sortBy=rating&order=desc`
+  );
 
   if (!response.ok) {
     throw new Error(`Failed to fetch products by ${search}`);

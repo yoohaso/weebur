@@ -65,6 +65,8 @@ export default function SearchPage() {
     select: data => data.pages.flatMap(page => page.products),
   });
 
+  console.log('products', products);
+
   const handleIntersect = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -101,55 +103,61 @@ export default function SearchPage() {
           </Form>
         )}
       </Formik>
-      {viewMode === 'LIST' ? (
-        <List>
-          {products.map(product => (
-            <ListItem
-              key={product.id}
-              left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-              contents={
-                <ListItem.Contents>
-                  <h4>{product.title}</h4>
-                  <p>{product.description}</p>
-                  <p>
-                    별점 {product.rating} 후기 ({product.reviews.length})
-                  </p>
-                </ListItem.Contents>
-              }
-            />
-          ))}
-        </List>
+      {products.length === 0 ? (
+        <p>일치하는 결과가 없습니다.</p>
       ) : (
-        <Grid>
-          {products.map(product => (
-            <GridItem
-              key={product.id}
-              columnCount={4}
-              top={<GridItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-              contents={
-                <GridItem.Contents>
-                  <h4>{product.title}</h4>
-                  <p>{product.description}</p>
-                  <p>
-                    별점 {product.rating} 후기 ({product.reviews.length})
-                  </p>
-                </GridItem.Contents>
-              }
+        <>
+          {viewMode === 'LIST' ? (
+            <List>
+              {products.map(product => (
+                <ListItem
+                  key={product.id}
+                  left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
+                  contents={
+                    <ListItem.Contents>
+                      <h4>{product.title}</h4>
+                      <p>{product.description}</p>
+                      <p>
+                        별점 {product.rating} 후기 ({product.reviews.length})
+                      </p>
+                    </ListItem.Contents>
+                  }
+                />
+              ))}
+            </List>
+          ) : (
+            <Grid>
+              {products.map(product => (
+                <GridItem
+                  key={product.id}
+                  columnCount={4}
+                  top={<GridItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
+                  contents={
+                    <GridItem.Contents>
+                      <h4>{product.title}</h4>
+                      <p>{product.description}</p>
+                      <p>
+                        별점 {product.rating} 후기 ({product.reviews.length})
+                      </p>
+                    </GridItem.Contents>
+                  }
+                />
+              ))}
+            </Grid>
+          )}
+          {hasNextPage && (
+            <div
+              style={{
+                width: '100%',
+                height: '1px',
+                backgroundColor: 'transparent',
+                position: 'relative',
+                top: '-300px',
+              }}
+              ref={ref}
             />
-          ))}
-        </Grid>
-      )}
-      {hasNextPage && (
-        <div
-          style={{
-            width: '100%',
-            height: '1px',
-            backgroundColor: 'transparent',
-            position: 'relative',
-            top: '-300px',
-          }}
-          ref={ref}
-        />
+          )}
+        </>
       )}
     </>
   );

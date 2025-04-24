@@ -4,41 +4,10 @@ import { Grid } from '@/components/Grid';
 import { GridItem } from '@/components/GridItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { useRouter } from 'next/router';
-
-const useIntersectionObserver = <Element extends HTMLElement>(
-  callback: () => void,
-  option: IntersectionObserverInit
-) => {
-  const ref = useRef<Element>(null);
-  const observer = useRef<IntersectionObserver | null>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-
-    if (!element) {
-      return;
-    }
-
-    observer.current = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        callback();
-      }
-    }, option);
-
-    observer.current.observe(element);
-
-    return () => {
-      if (observer.current) {
-        observer.current.unobserve(element);
-      }
-    };
-  }, [callback, option]);
-
-  return ref;
-};
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface Product {
   id: number;

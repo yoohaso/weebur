@@ -1,51 +1,18 @@
-import { List } from '@/components/List';
-import { ListItem } from '@/components/ListItem';
-import { Grid } from '@/components/Grid';
-import { GridItem } from '@/components/GridItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { useCallback } from 'react';
 import { Formik, Form, Field } from 'formik';
 import { useRouter } from 'next/router';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
-
-interface Product {
-  id: number;
-  title: string;
-  description: string;
-  thumbnail: string;
-  rating: number;
-  reviews: {
-    comment: string;
-    date: string;
-    rating: number;
-    reviewerEmail: string;
-    reviewerName: string;
-  }[];
-}
-
-interface ProductsResponse {
-  products: Product[];
-  total: number;
-  skip: number;
-  limit: number;
-}
-
-const fetchProducts = async ({ skip = 0 }: { skip?: number }): Promise<ProductsResponse> => {
-  const response = await fetch(`https://dummyjson.com/products?limit=20&skip=${skip}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch products');
-  }
-
-  return await response.json();
-};
+import { ProductsView } from '@/features/ProductsView';
+import { InfiniteScroll } from '@/components/InfiniteScroll';
+import { fetchProducts } from '@/api/product';
+import { PAGINATION_LIMIT } from '@/constants';
+import { productKeys } from '@/api/queryKeyFactory';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
 
   await queryClient.prefetchInfiniteQuery({
-    queryKey: ['products'],
+    queryKey: productKeys.lists(),
     queryFn: () => fetchProducts({ skip: 0 }),
     initialPageParam: 0,
   });
@@ -57,8 +24,6 @@ export const getServerSideProps = async () => {
   };
 };
 
-const LIMIT = 20;
-
 export default function Home() {
   const {
     data: products,
@@ -68,29 +33,25 @@ export default function Home() {
     isFetchingNextPage,
   } = useInfiniteQuery({
     initialPageParam: 0,
-    queryKey: ['products'],
+    queryKey: productKeys.lists(),
     queryFn: ({ pageParam }) => fetchProducts({ skip: pageParam }),
     getNextPageParam: lastPage => {
-      if (lastPage.limit < LIMIT) {
+      if (lastPage.limit < PAGINATION_LIMIT) {
         return;
       }
 
-      return lastPage.skip + LIMIT;
+      return lastPage.skip + PAGINATION_LIMIT;
     },
     select: data => data.pages.flatMap(page => page.products),
   });
 
   const [viewMode] = useRandomViewMode();
 
-  const handleIntersect = useCallback(() => {
+  const handleIntersect = () => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const ref = useIntersectionObserver<HTMLDivElement>(handleIntersect, {
-    threshold: 0.5,
-  });
+  };
 
   const router = useRouter();
 
@@ -120,57 +81,13 @@ export default function Home() {
           </Form>
         )}
       </Formik>
-      {viewMode === 'LIST' ? (
-        <List>
-          {products.map(product => (
-            <ListItem
-              key={product.id}
-              left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-              contents={
-                <ListItem.Contents>
-                  <h4>{product.title}</h4>
-                  <p>{product.description}</p>
-                  <p>
-                    별점 {product.rating} 후기 ({product.reviews.length})
-                  </p>
-                </ListItem.Contents>
-              }
-            />
-          ))}
-        </List>
-      ) : (
-        <Grid>
-          {products.map(product => (
-            <GridItem
-              key={product.id}
-              columnCount={4}
-              top={<GridItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-              contents={
-                <GridItem.Contents>
-                  <h4>{product.title}</h4>
-                  <p>{product.description}</p>
-                  <p>
-                    별점 {product.rating} 후기 ({product.reviews.length})
-                  </p>
-                </GridItem.Contents>
-              }
-            />
-          ))}
-        </Grid>
-      )}
-      {!hasNextPage && products.length > LIMIT && <p>더 이상 불러올 수 없습니다.</p>}
-      {hasNextPage && (
-        <div
-          style={{
-            width: '100%',
-            height: '1px',
-            backgroundColor: 'transparent',
-            position: 'relative',
-            top: '-300px',
-          }}
-          ref={ref}
-        />
-      )}
+      <InfiniteScroll
+        onIntersect={handleIntersect}
+        disabled={!hasNextPage && products.length > PAGINATION_LIMIT}
+        disabledComponent={<p>더 이상 불러올 수 없습니다.</p>}
+      >
+        <ProductsView viewMode={viewMode} products={products} />
+      </InfiniteScroll>
     </>
   );
 }

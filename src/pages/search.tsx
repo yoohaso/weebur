@@ -1,33 +1,20 @@
-import { Grid } from '@/components/Grid';
-import { GridItem } from '@/components/GridItem';
-import { List } from '@/components/List';
-import { ListItem } from '@/components/ListItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { Field, Form, Formik } from 'formik';
-import { useCallback } from 'react';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext } from 'next';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
-
-const fetchProductsBySearch = async ({ search, skip = 0 }: { search: string; skip: number }) => {
-  const response = await fetch(
-    `https://dummyjson.com/products/search?q=${search}&limit=20&skip=${skip}&sortBy=rating&order=desc`
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch products by ${search}`);
-  }
-
-  return await response.json();
-};
+import { ProductsView } from '@/features/ProductsView';
+import { InfiniteScroll } from '@/components/InfiniteScroll';
+import { fetchProductsBySearch } from '@/api/product';
+import { PAGINATION_LIMIT } from '@/constants';
+import { productKeys } from '@/api/queryKeyFactory';
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const queryClient = new QueryClient();
   const { q: search } = context.query as { q: string };
 
   await queryClient.prefetchInfiniteQuery({
-    queryKey: ['products', search],
+    queryKey: productKeys.list(search),
     queryFn: () => fetchProductsBySearch({ search, skip: 0 }),
     initialPageParam: 0,
   });
@@ -45,8 +32,6 @@ export default function SearchPage() {
   const router = useRouter();
   const { q: search } = router.query as { q: string };
 
-  const LIMIT = 20;
-
   const {
     data: products,
     isPending,
@@ -55,27 +40,23 @@ export default function SearchPage() {
     fetchNextPage,
   } = useInfiniteQuery({
     initialPageParam: 0,
-    queryKey: ['products', search],
+    queryKey: productKeys.list(search),
     queryFn: ({ pageParam }) => fetchProductsBySearch({ search, skip: pageParam }),
     getNextPageParam: lastPage => {
-      if (lastPage.limit < LIMIT) {
+      if (lastPage.limit < PAGINATION_LIMIT) {
         return;
       }
 
-      return lastPage.skip + LIMIT;
+      return lastPage.skip + PAGINATION_LIMIT;
     },
     select: data => data.pages.flatMap(page => page.products),
   });
 
-  const handleIntersect = useCallback(() => {
+  const handleIntersect = () => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const ref = useIntersectionObserver<HTMLDivElement>(handleIntersect, {
-    threshold: 0.5,
-  });
+  };
 
   if (!viewMode) {
     return null;
@@ -106,59 +87,13 @@ export default function SearchPage() {
       {products.length === 0 ? (
         <p>일치하는 결과가 없습니다.</p>
       ) : (
-        <>
-          {viewMode === 'LIST' ? (
-            <List>
-              {products.map(product => (
-                <ListItem
-                  key={product.id}
-                  left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-                  contents={
-                    <ListItem.Contents>
-                      <h4>{product.title}</h4>
-                      <p>{product.description}</p>
-                      <p>
-                        별점 {product.rating} 후기 ({product.reviews.length})
-                      </p>
-                    </ListItem.Contents>
-                  }
-                />
-              ))}
-            </List>
-          ) : (
-            <Grid>
-              {products.map(product => (
-                <GridItem
-                  key={product.id}
-                  columnCount={4}
-                  top={<GridItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
-                  contents={
-                    <GridItem.Contents>
-                      <h4>{product.title}</h4>
-                      <p>{product.description}</p>
-                      <p>
-                        별점 {product.rating} 후기 ({product.reviews.length})
-                      </p>
-                    </GridItem.Contents>
-                  }
-                />
-              ))}
-            </Grid>
-          )}
-          {!hasNextPage && products.length > LIMIT && <p>더 이상 불러올 수 없습니다.</p>}
-          {hasNextPage && (
-            <div
-              style={{
-                width: '100%',
-                height: '1px',
-                backgroundColor: 'transparent',
-                position: 'relative',
-                top: '-300px',
-              }}
-              ref={ref}
-            />
-          )}
-        </>
+        <InfiniteScroll
+          onIntersect={handleIntersect}
+          disabled={!hasNextPage && products.length > PAGINATION_LIMIT}
+          disabledComponent={<p>더 이상 불러올 수 없습니다.</p>}
+        >
+          <ProductsView viewMode={viewMode} products={products} />
+        </InfiniteScroll>
       )}
     </>
   );

@@ -1,5 +1,4 @@
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
-import { Field, Form, Formik } from 'formik';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext } from 'next';
@@ -8,6 +7,7 @@ import { InfiniteScroll } from '@/components/InfiniteScroll';
 import { fetchProductsBySearch } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
+import { SearchForm } from '@/features/SearchForm';
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const queryClient = new QueryClient();
@@ -68,22 +68,7 @@ export default function SearchPage() {
 
   return (
     <>
-      <Formik
-        initialValues={{ search: '' }}
-        onSubmit={({ search }, { setSubmitting }) => {
-          router.push(`search?q=${search}`);
-          setSubmitting(false);
-        }}
-      >
-        {({ isSubmitting }) => (
-          <Form>
-            <Field type="text" name="search" placeholder="검색어를 입력하세요." />
-            <button type="submit" disabled={isSubmitting}>
-              검색
-            </button>
-          </Form>
-        )}
-      </Formik>
+      <SearchForm initialValue={search} />
       {products.length === 0 ? (
         <p>일치하는 결과가 없습니다.</p>
       ) : (

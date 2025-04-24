@@ -1,12 +1,11 @@
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { Formik, Form, Field } from 'formik';
-import { useRouter } from 'next/router';
 import { ProductsView } from '@/features/ProductsView';
 import { InfiniteScroll } from '@/components/InfiniteScroll';
 import { fetchProducts } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
+import { SearchForm } from '@/features/SearchForm';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
@@ -53,8 +52,6 @@ export default function Home() {
     }
   };
 
-  const router = useRouter();
-
   if (!viewMode) {
     return null;
   }
@@ -65,22 +62,7 @@ export default function Home() {
 
   return (
     <>
-      <Formik
-        initialValues={{ search: '' }}
-        onSubmit={({ search }, { setSubmitting }) => {
-          router.push(`search?q=${search}`);
-          setSubmitting(false);
-        }}
-      >
-        {({ isSubmitting }) => (
-          <Form>
-            <Field type="text" name="search" placeholder="검색어를 입력하세요." />
-            <button type="submit" disabled={isSubmitting}>
-              검색
-            </button>
-          </Form>
-        )}
-      </Formik>
+      <SearchForm />
       <InfiniteScroll
         onIntersect={handleIntersect}
         disabled={!hasNextPage && products.length > PAGINATION_LIMIT}

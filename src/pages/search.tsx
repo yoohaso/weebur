@@ -65,8 +65,6 @@ export default function SearchPage() {
     select: data => data.pages.flatMap(page => page.products),
   });
 
-  console.log('products', products);
-
   const handleIntersect = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -145,6 +143,7 @@ export default function SearchPage() {
               ))}
             </Grid>
           )}
+          {!hasNextPage && products.length > LIMIT && <p>더 이상 불러올 수 없습니다.</p>}
           {hasNextPage && (
             <div
               style={{

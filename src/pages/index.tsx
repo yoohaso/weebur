@@ -5,6 +5,8 @@ import { GridItem } from '@/components/GridItem';
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useCallback } from 'react';
+import { Formik, Form, Field } from 'formik';
+import { useRouter } from 'next/router';
 
 const useIntersectionObserver = <Element extends HTMLElement>(
   callback: () => void,
@@ -121,6 +123,8 @@ export default function Home() {
     threshold: 0.5,
   });
 
+  const router = useRouter();
+
   if (!viewMode) {
     return null;
   }
@@ -131,6 +135,22 @@ export default function Home() {
 
   return (
     <>
+      <Formik
+        initialValues={{ search: '' }}
+        onSubmit={({ search }, { setSubmitting }) => {
+          router.push(`search?q=${search}`);
+          setSubmitting(false);
+        }}
+      >
+        {({ isSubmitting }) => (
+          <Form>
+            <Field type="text" name="search" placeholder="검색어를 입력하세요." />
+            <button type="submit" disabled={isSubmitting}>
+              검색
+            </button>
+          </Form>
+        )}
+      </Formik>
       {viewMode === 'LIST' ? (
         <List>
           {products.map(product => (

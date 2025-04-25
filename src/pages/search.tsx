@@ -108,7 +108,7 @@ export default function SearchPage() {
           <>
             {products.length === 0 ? (
               <CenterWrapper>
-                <p>{`${search} 의 검색 결과가 없습니다.`}</p>
+                <p>일치하는 결과가 없습니다.</p>
                 <button onClick={() => router.push('/')}>홈으로 돌아가기</button>
               </CenterWrapper>
             ) : (

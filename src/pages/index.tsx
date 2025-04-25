@@ -6,6 +6,7 @@ import { fetchProducts } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
+import { PageWrapper } from '@/components/styled';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
@@ -61,7 +62,7 @@ export default function Home() {
   }
 
   return (
-    <>
+    <PageWrapper>
       <SearchForm />
       <InfiniteScroll
         onIntersect={handleIntersect}
@@ -70,6 +71,6 @@ export default function Home() {
       >
         <ProductsView viewMode={viewMode} products={products} />
       </InfiniteScroll>
-    </>
+    </PageWrapper>
   );
 }

@@ -16,11 +16,9 @@ export function ProductsGridView({ products }: ProductsGridViewProps) {
           top={<GridItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
           contents={
             <GridItem.Contents>
-              <h4>{product.title}</h4>
-              <p>{product.description}</p>
-              <p>
-                별점 {product.rating} 후기 ({product.reviews.length})
-              </p>
+              <GridItem.Text1Rows text={product.title} />
+              <GridItem.Text2Rows text={product.description} />
+              <GridItem.Text3Rows text={`별점 ${product.rating} 후기 (${product.reviews.length})`} />
             </GridItem.Contents>
           }
         />

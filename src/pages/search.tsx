@@ -8,6 +8,7 @@ import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
 import { useRouter } from 'next/router';
+import { PageWrapper } from '@/components/styled';
 
 interface ContainerProps {
   children: (props: {
@@ -82,7 +83,7 @@ export default function SearchPage() {
   }
 
   return (
-    <>
+    <PageWrapper>
       <SearchForm initialValue={search} />
       <Container>
         {({ products, hasNextPage, isFetchingNextPage, fetchNextPage }) => (
@@ -101,6 +102,6 @@ export default function SearchPage() {
           </>
         )}
       </Container>
-    </>
+    </PageWrapper>
   );
 }

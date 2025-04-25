@@ -34,7 +34,7 @@ export const getServerSideProps = async () => {
   }
 };
 
-export default function Home() {
+export default function HomePage() {
   const { data: products, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteProducts();
   const [viewMode] = useRandomViewMode();
 

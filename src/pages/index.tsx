@@ -6,23 +6,32 @@ import { fetchProducts } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
-import { PageWrapper } from '@/components/styled';
+import { CenterWrapper, PageWrapper } from '@/components/styled';
 import { useInfiniteProducts } from '@/api';
+import { Loading } from '@/components/Loading';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
 
-  await queryClient.prefetchInfiniteQuery({
-    queryKey: productKeys.lists(),
-    queryFn: () => fetchProducts({ skip: 0 }),
-    initialPageParam: 0,
-  });
+  try {
+    await queryClient.prefetchInfiniteQuery({
+      queryKey: productKeys.lists(),
+      queryFn: () => fetchProducts({ skip: 0 }),
+      initialPageParam: 0,
+    });
 
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient),
-    },
-  };
+    return {
+      props: {
+        dehydratedState: dehydrate(queryClient),
+      },
+    };
+  } catch (error: unknown) {
+    console.error(error);
+
+    return {
+      props: { dehydratedState: dehydrate(queryClient) },
+    };
+  }
 };
 
 export default function Home() {
@@ -31,7 +40,9 @@ export default function Home() {
 
   const handleIntersect = () => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      fetchNextPage().catch(error => {
+        console.error('Failed to fetch next page:', error);
+      });
     }
   };
 
@@ -40,7 +51,7 @@ export default function Home() {
   }
 
   if (isPending || !products) {
-    return <div>Loading...</div>;
+    return <Loading message="상품을 불러오는 중입니다..." />;
   }
 
   return (
@@ -49,7 +60,11 @@ export default function Home() {
       <InfiniteScroll
         onIntersect={handleIntersect}
         disabled={!hasNextPage && products.length > PAGINATION_LIMIT}
-        disabledComponent={<p>더 이상 불러올 수 없습니다.</p>}
+        disabledComponent={
+          <CenterWrapper>
+            <p>더 이상 불러올 수 없습니다.</p>
+          </CenterWrapper>
+        }
       >
         <ProductsView viewMode={viewMode} products={products} />
       </InfiniteScroll>

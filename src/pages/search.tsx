@@ -8,8 +8,10 @@ import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
 import { useRouter } from 'next/router';
-import { PageWrapper } from '@/components/styled';
+import { CenterWrapper, PageWrapper } from '@/components/styled';
 import { useInfiniteProductsBySearch } from '@/api';
+import { ErrorSection } from '@/components/ErrorSection';
+import { Loading } from '@/components/Loading';
 
 interface ContainerProps {
   children: (props: {
@@ -23,17 +25,25 @@ interface ContainerProps {
 export function Container({ children }: ContainerProps) {
   const router = useRouter();
   const { q: search } = router.query as { q: string };
-
   const {
     data: products,
     isPending,
+    isError,
+    error,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    refetch,
   } = useInfiniteProductsBySearch(search);
 
-  if (isPending || !products) {
-    return <div>로딩 중...</div>;
+  if (isPending) {
+    return <Loading message="검색 결과를 불러오는 중입니다..." />;
+  }
+
+  if (isError && error) {
+    return (
+      <ErrorSection message={`${search}의 검색 결과를 불러오는데 실패했습니다.`} onRefetch={refetch} error={error} />
+    );
   }
 
   return children({
@@ -48,17 +58,36 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const queryClient = new QueryClient();
   const { q: search } = context.query as { q: string };
 
-  await queryClient.prefetchInfiniteQuery({
-    queryKey: productKeys.list(search),
-    queryFn: () => fetchProductsBySearch({ search, skip: 0 }),
-    initialPageParam: 0,
-  });
+  if (!search?.trim()) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
 
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient),
-    },
-  };
+  try {
+    await queryClient.prefetchInfiniteQuery({
+      queryKey: productKeys.list(search),
+      queryFn: () => fetchProductsBySearch({ search, skip: 0 }),
+      initialPageParam: 0,
+    });
+
+    return {
+      props: {
+        dehydratedState: dehydrate(queryClient),
+      },
+    };
+  } catch (error: unknown) {
+    console.error(error);
+
+    return {
+      props: {
+        dehydratedState: dehydrate(queryClient),
+      },
+    };
+  }
 };
 
 export default function SearchPage() {
@@ -78,12 +107,25 @@ export default function SearchPage() {
         {({ products, hasNextPage, isFetchingNextPage, fetchNextPage }) => (
           <>
             {products.length === 0 ? (
-              <p>일치하는 결과가 없습니다.</p>
+              <CenterWrapper>
+                <p>{`${search} 의 검색 결과가 없습니다.`}</p>
+                <button onClick={() => router.push('/')}>홈으로 돌아가기</button>
+              </CenterWrapper>
             ) : (
               <InfiniteScroll
-                onIntersect={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
+                onIntersect={() => {
+                  if (hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage().catch(error => {
+                      console.error('Failed to fetch next page:', search, error);
+                    });
+                  }
+                }}
                 disabled={!hasNextPage && products.length > PAGINATION_LIMIT}
-                disabledComponent={<p>더 이상 불러올 수 없습니다.</p>}
+                disabledComponent={
+                  <CenterWrapper>
+                    <p>더 이상 불러올 수 없습니다.</p>
+                  </CenterWrapper>
+                }
               >
                 <ProductsView viewMode={viewMode} products={products} />
               </InfiniteScroll>

@@ -20,8 +20,10 @@ interface ProductsResponse {
   limit: number;
 }
 
+const PRODUCTS_BASE_URL = 'https://dummyjson.com/products';
+
 export async function fetchProducts({ skip = 0 }: { skip?: number }): Promise<ProductsResponse> {
-  const response = await fetch(`https://dummyjson.com/products?limit=20&skip=${skip}`);
+  const response = await fetch(`${PRODUCTS_BASE_URL}?limit=20&skip=${skip}`);
 
   if (!response.ok) {
     throw new Error('Failed to fetch products');
@@ -38,7 +40,7 @@ export async function fetchProductsBySearch({
   skip: number;
 }): Promise<ProductsResponse> {
   const response = await fetch(
-    `https://dummyjson.com/products/search?q=${search}&limit=20&skip=${skip}&sortBy=rating&order=desc`
+    `${PRODUCTS_BASE_URL}/search?q=${search}&limit=20&skip=${skip}&sortBy=rating&order=desc`
   );
 
   if (!response.ok) {

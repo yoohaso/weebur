@@ -1,5 +1,5 @@
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
-import { dehydrate, QueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { ProductsView } from '@/features/ProductsView';
 import { InfiniteScroll } from '@/components/InfiniteScroll';
 import { fetchProducts } from '@/api/product';
@@ -7,6 +7,7 @@ import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
 import { PageWrapper } from '@/components/styled';
+import { useInfiniteProducts } from '@/api';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();
@@ -25,26 +26,7 @@ export const getServerSideProps = async () => {
 };
 
 export default function Home() {
-  const {
-    data: products,
-    isPending,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    initialPageParam: 0,
-    queryKey: productKeys.lists(),
-    queryFn: ({ pageParam }) => fetchProducts({ skip: pageParam }),
-    getNextPageParam: lastPage => {
-      if (lastPage.limit < PAGINATION_LIMIT) {
-        return;
-      }
-
-      return lastPage.skip + PAGINATION_LIMIT;
-    },
-    select: data => data.pages.flatMap(page => page.products),
-  });
-
+  const { data: products, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteProducts();
   const [viewMode] = useRandomViewMode();
 
   const handleIntersect = () => {

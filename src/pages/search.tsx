@@ -1,5 +1,5 @@
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
-import { dehydrate, QueryClient, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
+import { dehydrate, QueryClient, UseInfiniteQueryResult } from '@tanstack/react-query';
 import { GetServerSidePropsContext } from 'next';
 import { ProductsView } from '@/features/ProductsView';
 import { InfiniteScroll } from '@/components/InfiniteScroll';
@@ -9,6 +9,7 @@ import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
 import { useRouter } from 'next/router';
 import { PageWrapper } from '@/components/styled';
+import { useInfiniteProductsBySearch } from '@/api';
 
 interface ContainerProps {
   children: (props: {
@@ -29,19 +30,7 @@ export function Container({ children }: ContainerProps) {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useInfiniteQuery({
-    initialPageParam: 0,
-    queryKey: productKeys.list(search),
-    queryFn: ({ pageParam }) => fetchProductsBySearch({ search, skip: pageParam }),
-    getNextPageParam: lastPage => {
-      if (lastPage.limit < PAGINATION_LIMIT) {
-        return;
-      }
-
-      return lastPage.skip + PAGINATION_LIMIT;
-    },
-    select: data => data.pages.flatMap(page => page.products),
-  });
+  } = useInfiniteProductsBySearch(search);
 
   if (isPending || !products) {
     return <div>로딩 중...</div>;

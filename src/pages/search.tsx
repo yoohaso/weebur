@@ -2,16 +2,16 @@ import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient, UseInfiniteQueryResult } from '@tanstack/react-query';
 import { GetServerSidePropsContext } from 'next';
 import { ProductsView } from '@/features/ProductsView';
-import { InfiniteScroll } from '@/components/InfiniteScroll';
+import { InfiniteScroll } from '@/components/common/InfiniteScroll';
 import { fetchProductsBySearch, Product } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
 import { useRouter } from 'next/router';
-import { CenterWrapper, PageWrapper } from '@/components/styled';
+import { CenterWrapper, PageWrapper } from '@/components/ui/styled';
 import { useInfiniteProductsBySearch } from '@/api';
-import { ErrorSection } from '@/components/ErrorSection';
-import { Loading } from '@/components/Loading';
+import { ErrorSection } from '@/components/common/ErrorSection';
+import { Loading } from '@/components/common/Loading';
 
 interface ContainerProps {
   children: (props: {

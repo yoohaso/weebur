@@ -1,14 +1,14 @@
 import { useRandomViewMode } from '@/hooks/useRandomViewMode';
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { ProductsView } from '@/features/ProductsView';
-import { InfiniteScroll } from '@/components/InfiniteScroll';
+import { InfiniteScroll } from '@/components/common/InfiniteScroll';
 import { fetchProducts } from '@/api/product';
 import { PAGINATION_LIMIT } from '@/constants';
 import { productKeys } from '@/api/queryKeyFactory';
 import { SearchForm } from '@/features/SearchForm';
-import { CenterWrapper, PageWrapper } from '@/components/styled';
+import { CenterWrapper, PageWrapper } from '@/components/ui/styled';
 import { useInfiniteProducts } from '@/api';
-import { Loading } from '@/components/Loading';
+import { Loading } from '@/components/common/Loading';
 
 export const getServerSideProps = async () => {
   const queryClient = new QueryClient();

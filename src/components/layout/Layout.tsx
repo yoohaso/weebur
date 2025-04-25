@@ -1,6 +1,5 @@
 import styled, { type DefaultTheme, ThemeProvider } from 'styled-components';
-import GlobalStyle from './globalstyles';
-import Head from 'next/head';
+import GlobalStyle from '@/globalstyles';
 
 const theme: DefaultTheme = {
   colors: {
@@ -14,11 +13,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Head>
-        <title>weebur</title>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
       <Main>{children}</Main>
     </ThemeProvider>
   );

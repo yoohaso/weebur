@@ -1,6 +1,6 @@
 import { Product } from '@/api/product';
-import { Grid } from '@/components/Grid';
-import { GridItem } from '@/components/GridItem';
+import { Grid } from '@/components/ui/Grid';
+import { GridItem } from '@/components/ui/GridItem';
 
 interface ProductsGridViewProps {
   products: Product[];

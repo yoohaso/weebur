@@ -1,4 +1,4 @@
-import { CenterWrapper } from './styled';
+import { CenterWrapper } from '@/components/ui/styled';
 
 interface LoadingProps {
   message: string;

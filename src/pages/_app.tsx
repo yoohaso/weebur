@@ -1,5 +1,5 @@
 import type { AppProps } from 'next/app';
-import Layout from '@/Layout';
+import Layout from '@/components/layout/Layout';
 import { HydrationBoundary, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 

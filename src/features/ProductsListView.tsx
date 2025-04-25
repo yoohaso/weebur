@@ -1,6 +1,6 @@
 import { Product } from '@/api/product';
-import { List } from '@/components/List';
-import { ListItem } from '@/components/ListItem';
+import { List } from '@/components/ui/List';
+import { ListItem } from '@/components/ui/ListItem';
 
 interface ProductsListViewProps {
   products: Product[];

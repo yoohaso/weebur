@@ -1,5 +1,6 @@
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import { useCallback } from 'react';
+import styled from 'styled-components';
 
 interface InfiniteScrollProps {
   children: React.ReactNode;
@@ -20,7 +21,7 @@ export function InfiniteScroll({ children, onIntersect, disabled, disabledCompon
   return (
     <>
       {children}
-      <div
+      <Target
         style={{
           width: '100%',
           height: '1px',
@@ -30,7 +31,19 @@ export function InfiniteScroll({ children, onIntersect, disabled, disabledCompon
         }}
         ref={ref}
       />
-      {disabled && disabledComponent}
+      <DisabledWrapper>{disabled && disabledComponent}</DisabledWrapper>
     </>
   );
 }
+
+const Target = styled.div`
+  width: 100%;
+  height: 1px;
+  background-color: transparent;
+  position: relative;
+  top: -300px;
+`;
+
+const DisabledWrapper = styled.div`
+  margin-top: 20px;
+`;

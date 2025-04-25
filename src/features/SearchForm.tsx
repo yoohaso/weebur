@@ -6,25 +6,32 @@ interface SearchFormProps {
   initialValue?: string;
 }
 
+interface FormValues {
+  search: string;
+}
+
 export function SearchForm({ initialValue = '' }: SearchFormProps) {
   const router = useRouter();
 
   return (
-    <Formik
+    <Formik<FormValues>
       initialValues={{ search: initialValue }}
       onSubmit={({ search }, { setSubmitting }) => {
-        router.push(`search?q=${search}`);
+        router.push(`search?q=${search.trim()}`);
         setSubmitting(false);
       }}
     >
-      {({ isSubmitting }) => (
-        <StyledForm>
-          <StyledField type="search" name="search" />
-          <StyledButton type="submit" disabled={isSubmitting}>
-            검색
-          </StyledButton>
-        </StyledForm>
-      )}
+      {({ isSubmitting, values }) => {
+        const isSearchEmpty = !values.search || values.search.trim() === '';
+        return (
+          <StyledForm>
+            <StyledField type="search" name="search" />
+            <StyledButton type="submit" disabled={isSubmitting || isSearchEmpty}>
+              검색
+            </StyledButton>
+          </StyledForm>
+        );
+      }}
     </Formik>
   );
 }

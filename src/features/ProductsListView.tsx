@@ -15,11 +15,9 @@ export function ProductsListView({ products }: ProductsListViewProps) {
           left={<ListItem.Image src={product.thumbnail} alt={product.title + ' thumbnail'} />}
           contents={
             <ListItem.Contents>
-              <h4>{product.title}</h4>
-              <p>{product.description}</p>
-              <p>
-                별점 {product.rating} 후기 ({product.reviews.length})
-              </p>
+              <ListItem.Text1Rows text={product.title} />
+              <ListItem.Text2Rows text={product.description} />
+              <ListItem.Text3Rows text={`별점 ${product.rating} 후기 (${product.reviews.length})`} />
             </ListItem.Contents>
           }
         />
